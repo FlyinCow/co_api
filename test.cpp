@@ -1,37 +1,28 @@
-#include <vector>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <iostream>
-#include <coroutine>
-#include <iterator>
-#include <string>
-#include <concepts>
-#include <type_traits>
+#include <thread>
+#include <chrono>
 
-class App {
-  class Router {};
+#include "task.hpp"
 
-  Router router_;
+using namespace co_api;
+using namespace std::chrono_literals;
 
- public:
-  template <class F, class RT = std::invoke_result_t<F>>
-  void get(std::string_view path, F cb) {
-    // 解析path
-    // 注册route
-  }
-};
+task<> get_two() {
+  fmt::println("\tinto get_two");
+  std::this_thread::sleep_for(1s);
+  fmt::println("\tsleep over");
+  co_return;
+}
 
-struct task {
-  struct promise_type {
-    void return_void() {}
-    std::suspend_always initial_suspend() noexcept { return {}; }
-    std::suspend_always final_suspend() noexcept { return {}; }
-    void unhandled_exception() {}
-    task get_return_object() { return {}; }
-  };
-};
+task<> get_three() {
+  fmt::println("\t\tinto get_three");
+  std::this_thread::sleep_for(1500ms);
+  fmt::println("\t\tsleep over");
+  co_return;
+}
 
 int main() {
-  App app{};
-  app.get("/user/id", []() -> task { co_return; });
+  // fmt::println("{}", 1);
 }
