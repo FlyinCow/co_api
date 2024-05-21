@@ -3,6 +3,8 @@
 
 #include <coroutine>
 #include <utility>
+#include <string>
+#include <fmt/core.h>
 
 namespace co_api {
 template <class T>
@@ -24,8 +26,15 @@ struct task<void> {
     constexpr auto final_suspend() noexcept {
       struct final_awaiter {
         constexpr bool await_ready() noexcept { return false; }
-        void await_suspend(std::coroutine_handle<promise_type> h) noexcept {
-          h.promise().awaitee.resume();
+
+        std::coroutine_handle<> await_suspend(
+            std::coroutine_handle<promise_type> h) noexcept {
+          // 存在awaitee，该task是被co_await的，完成后resume被suspend的coroutine
+          if (h.promise().awaitee) {
+            return h.promise().awaitee;
+          } else {  // 该task是被直接启动的，没有被co_await，完成后退出
+            return std::noop_coroutine();
+          }
         }
         void await_resume() noexcept {}
       };
@@ -53,20 +62,22 @@ struct task<void> {
     // 当co_await inner_task()时首先确认是否需要等待
     constexpr bool await_ready() noexcept { return false; }
 
-    // 需要等待的时候进入await_suspend，将outer_task()的handle传入
-    void await_suspend(std::coroutine_handle<> awaitee) noexcept {
+    // 该task被co_await时，记录原coroutine，启动该task
+    auto await_suspend(std::coroutine_handle<> awaitee) noexcept {
       coro.promise().awaitee = awaitee;
-      coro.resume();
+      return coro;
     }
-    // T await_resume() { return _task.get_result(); }
+
+    void await_resume() noexcept {}
 
    private:
     explicit awaiter_type(std::coroutine_handle<promise_type> h) noexcept
         : coro(h) {}
-    std::coroutine_handle<promise_type> coro;
+
+    std::coroutine_handle<promise_type> coro;  // 被co_await的task
   };
 
-  awaiter_type operator co_await() { return awaiter_type{self}; }
+  awaiter_type operator co_await() && { return awaiter_type{self}; }
 
   // move construction
   task(task&& other) : self(std::exchange(other.self, {})){};
@@ -77,7 +88,11 @@ struct task<void> {
     }
   }
 
-  // T get_result() { return _h.promise().get_result(); }
+  void emit() {
+    if (self) {
+      self.resume();
+    }
+  }
 
  private:
   explicit task(std::coroutine_handle<promise_type> h) : self(h) {}
