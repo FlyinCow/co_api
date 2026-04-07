@@ -1,8 +1,4 @@
 .vscode/
-build
-.cache
-<<<<<<< HEAD
-.direnv
-=======
+build/
+.cache/
 .direnv/
->>>>>>> 36ad276 (temp)
