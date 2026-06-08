@@ -1,17 +1,16 @@
-#include <fmt/core.h>
-#include <fmt/ranges.h>
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <string>
-#include <coroutine>
 #include "include/task.hpp"
+// #include <chrono>
+#include <coroutine>
+#include <format>
+#include <print>
+#include <string_view>
+#include <thread>
 
 using namespace co_api;
 using namespace std::chrono_literals;
 using std::string_view;
 using std::this_thread::sleep_for;
-void debug(string_view msg) { fmt::println("{}", msg); }
+void debug(string_view msg) { std::println("{}", msg); }
 
 struct emiter {
   struct promise_type {
@@ -27,12 +26,14 @@ struct emiter {
 
   std::coroutine_handle<> self;
   void emit() {
-    if (self) self.resume();
+    if (self)
+      self.resume();
   }
 
   emiter(std::coroutine_handle<promise_type> h) : self(h) {}
   ~emiter() {
-    if (self) self.destroy();
+    if (self)
+      self.destroy();
   }
 };
 

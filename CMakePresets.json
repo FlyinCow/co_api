@@ -7,15 +7,24 @@
     },
     "configurePresets": [
         {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_STANDARD": "23"
+            }
+        },
+        {
             "name": "windows-base",
             "displayName": "Windows (Ninja + Clang)",
             "hidden": true,
+            "inherits": "base",
             "description": "Configure using Ninja generator and the Windows Clang toolchain from the cloned repo.",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/Windows.Clang.toolchain.cmake",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/Windows.Clang.toolchain.cmake"
             }
         },
         {
@@ -36,6 +45,7 @@
         },
         {
             "name": "linux-base",
+            "inherits": "base",
             "displayName": "Linux Clang",
             "hidden": true
         },
